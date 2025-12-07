@@ -13,9 +13,15 @@ interface Props {
   selectedCount: number;
   onSelect: (card: Card) => void;
   resetTrigger: boolean;
+  maxSelectionCount: number;
 }
 
-const CardDisplay: React.FC<Props> = ({ cards, selectedCount, onSelect, resetTrigger }) => {
+const CardDisplay: React.FC<Props> = ({ cards,
+  selectedCount,
+  onSelect,
+  resetTrigger,
+  maxSelectionCount
+}) => {
   const [flipped, setFlipped] = useState<boolean[]>(cards.map(() => false));
 
   useEffect(() => {
@@ -32,7 +38,8 @@ const CardDisplay: React.FC<Props> = ({ cards, selectedCount, onSelect, resetTri
       <View style={styles.container}>
         {cards.map((card, index) => (
           <TouchableOpacity key={card.id} onPress={() => {
-            if (flipped[index] || selectedCount >= 3) return;
+            if (flipped[index] || selectedCount >= maxSelectionCount) return;
+
             const newFlipped = [...flipped];
             newFlipped[index] = true;
             setFlipped(newFlipped);
