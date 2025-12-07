@@ -1,9 +1,13 @@
-import CardDisplay from '@/components/CardDisplay';
 import React, { useEffect, useState } from 'react';
-import { Button, ScrollView, StyleSheet, Text } from 'react-native';
+import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
+import CardDisplay from '../../../components/CardDisplay';
 import { cards as allCards } from '../../../data/cards';
 
-export default function ThreeCardsTarotScreen() {
+interface Props {
+  language: "en" | "tr";
+}
+
+export default function ThreeCardsTarotScreen({ language }: Props) {
   const [cards, setCards] = useState(allCards);
   const [selectedCards, setSelectedCards] = useState<any[]>([]);
   const [resetTrigger, setResetTrigger] = useState(false);
@@ -28,9 +32,26 @@ export default function ThreeCardsTarotScreen() {
     setResetTrigger(prev => !prev);
   };
 
+  const getMeaning = (card: any, lang: "en" | "tr") => {
+    return card.meaning[lang].trim();
+  };
+
+  const getPositionText = (i: number) => {
+    if (language === "en") {
+      return i === 0 ? "Past:" : i === 1 ? "Present:" : "Future:";
+    }
+    return i === 0 ? "Geçmiş:" : i === 1 ? "Şimdi:" : "Gelecek:";
+  };
+
+  const infoText =
+    language === "en"
+      ? `Cards left to select: ${3 - selectedCards.length}`
+      : `Seçilecek kart sayısı: ${3 - selectedCards.length}`;
+
+  const buttonTitle = language === "en" ? "New Tarot Draw" : "Yeni Tarot Çekimi";
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Select Your Tarot Cards</Text>
       <CardDisplay
         cards={cards}
         selectedCount={selectedCards.length}
@@ -38,15 +59,22 @@ export default function ThreeCardsTarotScreen() {
         resetTrigger={resetTrigger}
         maxSelectionCount={3}
       />
-      {selectedCards.map((card, i) => (
-        <Text key={i} style={styles.meaning}>
-          {card.name}:
-          {"\n"}EN: {card.meaning.en}
-          {"\n"}TR: {card.meaning.tr}
-        </Text>
-      ))}
-      <Text style={styles.info}>Cards left to select: {3 - selectedCards.length}</Text>
-      <Button title="New Tarot Draw" onPress={handleReset} />
+
+      {selectedCards.length === 3 && (
+        <View>
+          {selectedCards.map((card, i) => (
+            <View key={i}>
+              <Text style={styles.title}>
+                {getPositionText(i)} {card.name}
+              </Text>
+              <Text style={styles.meaning}>{getMeaning(card, language)}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      <Text style={styles.info}>{infoText}</Text>
+      <Button title={buttonTitle} onPress={handleReset} />
     </ScrollView>
   );
 }
@@ -57,15 +85,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     padding: 20,
-    backgroundColor: '#f5f5f5'
   },
-
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
+    textAlign: 'center',
     marginTop: 30,
-    color: '#222'
+    color: '#222',
   },
   meaning: { fontSize: 16, textAlign: 'center', marginVertical: 5, color: '#333' },
   info: { fontSize: 16, marginTop: 20, fontStyle: 'italic', color: '#555' },

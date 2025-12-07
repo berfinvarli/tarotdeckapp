@@ -20,7 +20,7 @@
 1. Clone the repo:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/TarotDeck.git
+git clone https://github.com/berfinvarli/tarotdeckapp.git
 cd TarotDeck
 ````  
 
