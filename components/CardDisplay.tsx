@@ -8,12 +8,20 @@ interface Card {
   name: string;
   image: any;
   meaning: { en: string; tr: string };
+  meaning_reversed: { en: string; tr: string };
+  answer: { en: string; tr: string };
+  answer_reversed: { en: string; tr: string };
+}
+
+interface SelectedCardWithState {
+  card: Card;
+  reversed: boolean;
 }
 
 interface Props {
   cards: Card[];
   selectedCount: number;
-  onSelect: (card: Card) => void;
+  onSelect: (cardWithState: SelectedCardWithState) => void;
   resetTrigger: boolean;
   maxSelectionCount: number;
 }
@@ -26,10 +34,12 @@ const CardDisplay: React.FC<Props> = ({ cards,
 }) => {
   const [flipped, setFlipped] = useState<boolean[]>(cards.map(() => false));
   const animatedValues = useRef(cards.map(() => new Animated.Value(0))).current;
+  const [isReversed, setIsReversed] = useState<boolean[]>(cards.map(() => Math.random() < 0.5));
 
   useEffect(() => {
     setFlipped(cards.map(() => false));
     animatedValues.forEach(val => val.setValue(0));
+    setIsReversed(cards.map(() => Math.random() < 0.5));
   }, [resetTrigger, cards]);
 
   const screenWidth = Dimensions.get('window').width;
@@ -59,6 +69,7 @@ const CardDisplay: React.FC<Props> = ({ cards,
             inputRange: [0, 1],
             outputRange: ['180deg', '360deg'],
           });
+          const cardRotation = isReversed[index] ? '180deg' : '0deg';
 
           return (
             <TouchableOpacity
@@ -69,7 +80,7 @@ const CardDisplay: React.FC<Props> = ({ cards,
                 newFlipped[index] = true;
                 setFlipped(newFlipped);
                 flipCard(index);
-                onSelect(card);
+                onSelect({ card: card, reversed: isReversed[index] });
               }}
             >
               <View style={{ width: cardWidth, height: cardHeight, margin: 5 }}>
@@ -95,7 +106,10 @@ const CardDisplay: React.FC<Props> = ({ cards,
                     width: cardWidth,
                     height: cardHeight,
                     backfaceVisibility: 'hidden',
-                    transform: [{ rotateY: backRotate }],
+                    transform: [{ rotateY: backRotate },
+                      { rotate: cardRotation },
+                    ],
+                    
                   }}
                 >
                   <Image

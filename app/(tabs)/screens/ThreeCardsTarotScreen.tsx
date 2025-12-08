@@ -7,9 +7,14 @@ interface Props {
   language: "en" | "tr";
 }
 
+interface SelectedCardWithState {
+  card: any;
+  reversed: boolean;
+}
+
 export default function ThreeCardsTarotScreen({ language }: Props) {
   const [cards, setCards] = useState(allCards);
-  const [selectedCards, setSelectedCards] = useState<any[]>([]);
+  const [selectedCards, setSelectedCards] = useState<SelectedCardWithState[]>([]);
   const [resetTrigger, setResetTrigger] = useState(false);
 
   useEffect(() => {
@@ -21,19 +26,32 @@ export default function ThreeCardsTarotScreen({ language }: Props) {
     setCards(shuffled);
   };
 
-  const handleSelect = (card: any) => {
+  const handleSelect = (cardWithState: SelectedCardWithState) => {
     if (selectedCards.length >= 3) return;
-    if (!selectedCards.includes(card)) setSelectedCards([...selectedCards, card]);
+    if (!selectedCards.some(sc => sc.card.id === cardWithState.card.id)) {
+        setSelectedCards([...selectedCards, cardWithState]);
+    }
   };
-
   const handleReset = () => {
     setSelectedCards([]);
     shuffleCards();
     setResetTrigger(prev => !prev);
   };
 
-  const getMeaning = (card: any, lang: "en" | "tr") => {
+  const getMeaning = (cardWithState: SelectedCardWithState, lang: "en" | "tr") => {
+    const { card, reversed } = cardWithState;
+    if (reversed) {
+        return card.meaning_reversed[lang].trim();
+    }
     return card.meaning[lang].trim();
+  };
+
+  const getCardTitle = (cardWithState: SelectedCardWithState) => {
+      const { card, reversed } = cardWithState;
+      if (reversed) {
+          return language === "en" ? `${card.name} (Reversed)` : `${card.name} (Ters)`;
+      }
+      return card.name;
   };
 
   const getPositionText = (i: number) => {
@@ -62,12 +80,12 @@ export default function ThreeCardsTarotScreen({ language }: Props) {
 
       {selectedCards.length === 3 && (
         <View>
-          {selectedCards.map((card, i) => (
+          {selectedCards.map((cardWithState, i) => (
             <View key={i}>
               <Text style={styles.title}>
-                {getPositionText(i)} {card.name}
+                {getPositionText(i)} {getCardTitle(cardWithState)}
               </Text>
-              <Text style={styles.meaning}>{getMeaning(card, language)}</Text>
+              <Text style={styles.meaning}>{getMeaning(cardWithState, language)}</Text>
             </View>
           ))}
         </View>

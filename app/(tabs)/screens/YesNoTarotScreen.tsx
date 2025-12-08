@@ -7,9 +7,14 @@ interface Props {
     language: "en" | "tr";
 }
 
+interface SelectedCardWithState {
+    card: any;
+    reversed: boolean;
+}
+
 export default function YesNoTarotScreen({ language }: Props) {
     const [cards, setCards] = useState(allCards);
-    const [selectedCards, setSelectedCards] = useState<any[]>([]);
+    const [selectedCards, setSelectedCards] = useState<SelectedCardWithState[]>([]);
     const [resetTrigger, setResetTrigger] = useState(false);
 
     useEffect(() => {
@@ -21,9 +26,11 @@ export default function YesNoTarotScreen({ language }: Props) {
         setCards(shuffled);
     };
 
-    const handleSelect = (card: any) => {
+    const handleSelect = (cardWithState: SelectedCardWithState) => {
         if (selectedCards.length >= 1) return;
-        if (!selectedCards.includes(card)) setSelectedCards([...selectedCards, card]);
+        if (!selectedCards.some(sc => sc.card.id === cardWithState.card.id)) {
+            setSelectedCards([...selectedCards, cardWithState]);
+        }
     };
 
     const handleReset = () => {
@@ -32,8 +39,20 @@ export default function YesNoTarotScreen({ language }: Props) {
         setResetTrigger(prev => !prev);
     };
 
-    const getAnswer = (card: any, lang: "en" | "tr") => {
+    const getAnswer = (cardWithState: SelectedCardWithState, lang: "en" | "tr") => {
+        const { card, reversed } = cardWithState;
+        if (reversed) {
+            return card.answer_reversed[lang];
+        }
         return card.answer[lang];
+    };
+
+    const getCardTitle = (cardWithState: SelectedCardWithState) => {
+        const { card, reversed } = cardWithState;
+        if (reversed) {
+            return language === "en" ? `${card.name} (Reversed)` : `${card.name} (Ters)`;
+        }
+        return card.name;
     };
 
     const infoText = language === "en" ? `Cards left to select: ${1 - selectedCards.length}` : `Seçilecek kart sayısı: ${1 - selectedCards.length}`;
@@ -48,10 +67,10 @@ export default function YesNoTarotScreen({ language }: Props) {
                 resetTrigger={resetTrigger}
                 maxSelectionCount={1}
             />
-            {selectedCards.map((card, i) => (
+            {selectedCards.map((cardWithState, i) => (
                 <View key={i} style={styles.meaning}>
-                    <Text style={styles.title}>{card.name}</Text>
-                    <Text style={styles.meaning}>{getAnswer(card, language)}</Text>
+                    <Text style={styles.title}>{getCardTitle(cardWithState)}</Text>
+                    <Text style={styles.meaning}>{getAnswer(cardWithState, language)}</Text>
                 </View>
             ))}
             <Text style={styles.info}>{infoText}</Text>
